@@ -1,5 +1,5 @@
 const { sendJson } = require('../../lib/server');
-const { authenticateGateway, getProviderCredential, recordGatewayUsage } = require('../../lib/gateway');
+const { authenticateGateway, requestWithCredentialFallback, recordGatewayUsage } = require('../../lib/gateway');
 
 function cleanModelId(value) {
   const parts = String(value || '').split('/');
@@ -48,23 +48,19 @@ module.exports = async function handler(req, res) {
     const model = cleanModelId(body.model);
     if (!model) return sendJson(res, 400, { error: { type: 'invalid_request_error', message: 'Invalid model ID.' } });
 
-    const providerKey = await getProviderCredential(auth.userId, 'ace-data-cloud');
-    if (!providerKey) return sendJson(res, 400, { error: { type: 'invalid_request_error', message: 'No saved Ace Data Cloud credential found for this account.' } });
-
     const payload = { ...body, model };
     const headers = {
-      Authorization: 'Bearer ' + providerKey,
       'Content-Type': 'application/json',
       Accept: req.headers.accept || 'application/json',
       'anthropic-version': req.headers['anthropic-version'] || '2023-06-01'
     };
     if (req.headers['anthropic-beta']) headers['anthropic-beta'] = req.headers['anthropic-beta'];
 
-    const upstream = await fetch('https://api.acedata.cloud/v1/messages', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(payload)
+    const routed = await requestWithCredentialFallback(auth.userId, 'ace-data-cloud', 'https://api.acedata.cloud/v1/messages', {
+      method: 'POST', headers, body: JSON.stringify(payload)
     });
+    if (!routed.response) return sendJson(res, 400, { error: { type: 'invalid_request_error', message: routed.error || 'No saved Ace Data Cloud credential found.' } });
+    const upstream = routed.response;
 
     res.statusCode = upstream.status;
     res.setHeader('Cache-Control', 'no-store');
