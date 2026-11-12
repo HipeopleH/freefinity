@@ -15,6 +15,19 @@ create table if not exists public.provider_credentials (
   created_at timestamptz not null default now()
 );
 
+-- Credential health metadata (also available as a standalone migration).
+alter table public.provider_credentials
+  add column if not exists health_status text not null default 'unchecked',
+  add column if not exists health_checked_at timestamptz,
+  add column if not exists health_message text not null default '';
+
+alter table public.provider_credentials
+  drop constraint if exists provider_credentials_health_status_check;
+
+alter table public.provider_credentials
+  add constraint provider_credentials_health_status_check
+  check (health_status in ('unchecked','active','invalid','expired','insufficient_credits','unknown'));
+
 create index if not exists provider_credentials_user_id_idx
   on public.provider_credentials(user_id);
 
