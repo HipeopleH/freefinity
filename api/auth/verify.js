@@ -6,8 +6,8 @@ module.exports = async function handler(req, res) {
     const body = req.body || {};
     const email = String(body.email || '').trim().toLowerCase();
     const token = String(body.token || '').trim();
-    if (!email || !/^\\S+@\\S+\\.\\S+$/.test(email)) return sendJson(res, 400, { error: 'Enter a valid email address.' });
-    if (!/^\\d{6}$/.test(token)) return sendJson(res, 400, { error: 'Enter the 6-digit code from your email.' });
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) return sendJson(res, 400, { error: 'Enter a valid email address.' });
+    if (!/^\d{6}$/.test(token)) return sendJson(res, 400, { error: 'Enter the 6-digit code from your email.' });
 
     const client = supabasePublic();
     const result = await client.auth.verifyOtp({ email, token, type: 'signup' });
