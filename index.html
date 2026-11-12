@@ -600,7 +600,8 @@ footer button:hover{color:white}
                 <div class="codebox">
                     Provider name: Freefinity<br>
                     API base URL: https://YOUR-FREEFINITY-DOMAIN/v1<br>
-                    API format: OpenAI-compatible<br>
+                    fcc-opencode API format: OpenAI Chat (openai_chat)<br>
+                    fcc-claude API format: Anthropic Messages (anthropic_messages)<br>
                     API key: YOUR_FREEFINITY_GATEWAY_KEY<br>
                     Model IDs: Use the IDs returned by GET /v1/models
                 </div>
@@ -665,11 +666,11 @@ footer button:hover{color:white}
     </div>
 
     <div class="tutorial-warning">
-        <strong>Compatibility note:</strong> Free Claude Code supports custom providers
-        with an API format and base URL. Freefinity must actually implement the
-        OpenAI-compatible endpoints, model discovery where needed, streaming,
-        and authentication before this tutorial will work. This page is documentation,
-        not proof that the gateway is already running.
+        <strong>Compatibility note:</strong> Use OpenAI Chat for fcc-opencode and
+        Anthropic Messages for fcc-claude. Freefinity exposes model discovery at
+        <code>/v1/models</code>, OpenAI Chat at <code>/v1/chat/completions</code>,
+        and Anthropic Messages at <code>/v1/messages</code>, including streaming.
+        This page documents the deployed gateway interface.
     </div>
 
     <div class="actions" style="justify-content:flex-start">
