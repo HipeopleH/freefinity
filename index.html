@@ -691,7 +691,7 @@ footer button:hover{color:white}
 
 <script>
 // Freefinity frontend/API contract.
-// These routes are placeholders until the matching Vercel functions are deployed.
+// These routes are implemented by the Vercel functions in /api.
 const API = {
     auth: {
         signup: '/api/auth/signup',
@@ -908,7 +908,7 @@ function renderKeys() {
                 select.appendChild(option);
             });
             select.value = item.provider || 'Ace Data Cloud';
-            select.addEventListener('change', e => updateKey(item.id, 'provider', e.target.value));
+            select.addEventListener('change', e => { updateKey(item.id, 'provider', e.target.value); const input = row.querySelector('.provider-key-input'); if (input && item.isNew) input.placeholder = e.target.value === 'Ace Data Cloud' ? 'Paste your Ace Data Cloud auth key' : 'Enter provider credential'; });
             provider.append(providerLabel, select);
 
             const label = document.createElement('div');
@@ -927,7 +927,8 @@ function renderKeys() {
             keyTitle.textContent = item.isNew ? 'API KEY' : 'SAVED CREDENTIAL';
             const keyInput = document.createElement('input');
             keyInput.type = 'password';
-            keyInput.placeholder = item.isNew ? 'Enter provider credential' : 'Stored securely — re-enter to replace';
+            keyInput.className = 'provider-key-input';
+            keyInput.placeholder = item.isNew ? (item.provider === 'Ace Data Cloud' ? 'Paste your Ace Data Cloud auth key' : 'Enter provider credential') : 'Stored securely — re-enter to replace';
             keyInput.autocomplete = 'new-password';
             keyInput.value = '';
             keyInput.addEventListener('input', e => updateKey(item.id, 'key', e.target.value));
