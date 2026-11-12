@@ -1,4 +1,4 @@
-const { supabasePublic, sendJson, setSessionCookies } = require('../../lib/server');
+const { supabasePublic, sendJson } = require('../../lib/server');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
@@ -9,10 +9,17 @@ module.exports = async function handler(req, res) {
     if (!email || !/^\S+@\S+\.\S+$/.test(email)) return sendJson(res, 400, { error: 'Enter a valid email address.' });
     if (password.length < 12) return sendJson(res, 400, { error: 'Password must be at least 12 characters.' });
 
-    const client = supabasePublic();
-    const result = await client.auth.signUp({ email, password });
+    const host = req.headers['x-forwarded-host'] || req.headers.host;
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
+    if (!host) return sendJson(res, 400, { error: 'Could not determine the signup return address.' });
+    const emailRedirectTo = protocol + '://' + host + '/';
+
+    const result = await supabasePublic().auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo }
+    });
     if (result.error) return sendJson(res, 400, { error: result.error.message });
-    if (result.data.session) setSessionCookies(res, result.data.session);
     return sendJson(res, 201, {
       user: { id: result.data.user.id, email: result.data.user.email },
       requiresEmailConfirmation: !result.data.session
