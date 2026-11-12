@@ -1,0 +1,1004 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Freefinity — AI Without Limits</title>
+<style>
+:root {
+    --bg:#090b12;
+    --panel:#10131d;
+    --panel2:#151a27;
+    --border:#252b3b;
+    --text:#f1f2f8;
+    --muted:#858da2;
+    --purple:#9476ff;
+    --blue:#648fff;
+    --green:#54d6a0;
+    --red:#ff7777;
+}
+*{box-sizing:border-box}
+body{
+    margin:0;background:var(--bg);color:var(--text);
+    font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    min-height:100vh;
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+nav{
+    height:70px;padding:0 6%;display:flex;align-items:center;
+    justify-content:space-between;border-bottom:1px solid var(--border);
+    position:sticky;top:0;background:rgba(9,11,18,.94);
+    backdrop-filter:blur(15px);z-index:10;
+}
+.logo{font-size:22px;font-weight:800;letter-spacing:-1px}
+.logo span{
+    background:linear-gradient(110deg,#ae96ff,#6c9cff);
+    color:transparent;background-clip:text;-webkit-background-clip:text;
+}
+.navlinks{display:flex;align-items:center;gap:7px}
+.navlinks button{
+    background:transparent;border:0;color:var(--muted);
+    padding:10px 13px;border-radius:7px;font-size:12px;
+}
+.navlinks button:hover,.navlinks button.active{
+    color:white;background:#191d2b;
+}
+.navlinks button.active{box-shadow:inset 0 -2px var(--purple)}
+.launch{
+    background:#eeeaff!important;color:#171321!important;
+    font-weight:700!important;margin-left:8px;
+}
+main{max-width:1100px;margin:auto;padding:0 24px 80px}
+.page{display:none;animation:appear .25s ease}
+.page.active{display:block}
+@keyframes appear{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+
+.hero{text-align:center;padding:95px 0 65px}
+.pill{
+    display:inline-flex;gap:8px;align-items:center;
+    border:1px solid #34304c;background:#171429;color:#c0afff;
+    border-radius:30px;padding:8px 13px;font-size:10px;
+    letter-spacing:.7px;font-weight:700;
+}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+h1{font-size:clamp(46px,8vw,78px);letter-spacing:-4px;line-height:1.05;margin:25px 0 17px}
+.gradient{
+    background:linear-gradient(110deg,#ae96ff,#699bff);
+    color:transparent;background-clip:text;-webkit-background-clip:text;
+}
+.subtitle{
+    color:var(--muted);max-width:550px;margin:0 auto;
+    font-size:14px;line-height:1.8;
+}
+.actions{display:flex;justify-content:center;gap:10px;margin-top:27px;flex-wrap:wrap}
+.primary,.secondary,.danger{
+    border:0;border-radius:8px;padding:12px 18px;font-size:12px;font-weight:700;
+}
+.primary{background:linear-gradient(110deg,#9476ff,#648fff);color:white}
+.secondary{background:var(--panel2);border:1px solid var(--border);color:white}
+.danger{background:#351c25;color:#ff9ba6}
+.primary:hover{filter:brightness(1.13)}
+.secondary:hover{background:#202638}
+.section{margin:45px 0}
+.section-title{text-align:center;margin-bottom:25px}
+.section-title h2{font-size:25px;letter-spacing:-1px;margin:0 0 8px}
+.section-title p{font-size:12px;color:var(--muted);line-height:1.7}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.card{
+    background:var(--panel);border:1px solid var(--border);
+    border-radius:11px;padding:21px;
+}
+.card-icon{font-size:22px;color:#ac96ff;margin-bottom:16px}
+.card h3{font-size:14px;margin:0 0 9px}
+.card p{font-size:11px;color:var(--muted);line-height:1.8;margin:0}
+.community-strip{
+    margin:0 auto 20px;display:flex;align-items:center;
+    justify-content:center;gap:12px;flex-wrap:wrap;
+}
+.strip-label{font-size:9px;color:var(--muted);letter-spacing:1.3px;font-weight:700}
+.ticker-window{width:670px;overflow:hidden}
+.ticker{display:flex;width:max-content;gap:25px;animation:scroll 22s linear infinite}
+.ticker span{font-size:11px;color:#c5b9ef;white-space:nowrap}
+.ticker span:before{content:"✦";color:var(--purple);margin-right:7px}
+@keyframes scroll{to{transform:translateX(-50%)}}
+
+/* Shared page headers */
+.page-header{padding:52px 0 27px}
+.eyebrow{font-size:10px;color:#a994ff;letter-spacing:1.5px;font-weight:800}
+.page-header h1{font-size:38px;letter-spacing:-1.8px;margin:12px 0}
+.page-header p{font-size:13px;line-height:1.8;color:var(--muted);max-width:650px}
+
+/* API dashboard */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:22px 0}
+.stat{background:var(--panel);border:1px solid var(--border);padding:17px;border-radius:9px}
+.stat small{color:var(--muted);font-size:10px}
+.stat strong{display:block;font-size:25px;margin-top:9px;letter-spacing:-1px}
+.stat .green{color:var(--green)}
+.panel{
+    background:var(--panel);border:1px solid var(--border);
+    border-radius:11px;margin-top:15px;overflow:hidden;
+}
+.panel-heading{
+    padding:19px 20px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.panel-heading h2{font-size:14px;margin:0}
+.panel-heading p{font-size:10px;color:var(--muted);margin:5px 0 0}
+.panel-content{padding:19px}
+.key-list{display:flex;flex-direction:column;gap:10px}
+.key-row{
+    display:grid;grid-template-columns:1.1fr 1fr 1.5fr auto;
+    gap:10px;align-items:center;background:#151a27;
+    border:1px solid #2a3041;border-radius:8px;padding:12px;
+}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label{font-size:9px;color:var(--muted);font-weight:700}
+.field input,.field select,.text-input{
+    width:100%;background:#0d111b;color:white;
+    border:1px solid #30364a;border-radius:6px;
+    padding:10px;font-size:11px;outline:none;min-width:0;
+}
+.field input:focus,.field select:focus,.text-input:focus{border-color:var(--purple)}
+.key-actions{display:flex;gap:5px;align-items:center}
+.icon-btn{
+    width:32px;height:32px;border-radius:6px;
+    background:#202638;border:1px solid #343b50;color:#c6c9d6;
+}
+.icon-btn:hover{border-color:var(--purple);color:white}
+.remove-btn:hover{border-color:#a94a5b;color:#ff8585}
+.empty{text-align:center;padding:35px;color:var(--muted);font-size:12px}
+.note{
+    border:1px solid #3a3455;background:#1a172a;
+    padding:13px;border-radius:8px;color:#bdb3df;
+    font-size:11px;line-height:1.8;margin-top:15px;
+}
+.endpoint{
+    display:flex;align-items:center;gap:10px;
+    background:#0b0f18;border:1px solid #30364a;
+    padding:11px;border-radius:7px;margin-top:10px;
+}
+.endpoint code{font-size:11px;color:#b8a8ff;flex:1;overflow-wrap:anywhere}
+.copy-btn{
+    background:#26213d;border:1px solid #403663;
+    border-radius:6px;color:#c9baff;padding:8px 10px;font-size:10px;
+}
+.copy-btn:hover{background:#352b53}
+.endpoint-label{font-size:9px;color:var(--muted);font-weight:700;letter-spacing:1px}
+.gateway-key{display:flex;gap:8px;margin-top:10px}
+.gateway-key input{flex:1;min-width:0}
+
+/* Tutorial */
+.steps{display:flex;flex-direction:column;gap:12px}
+.step{
+    background:var(--panel);border:1px solid var(--border);
+    border-radius:10px;padding:20px;display:flex;gap:16px;
+}
+.step-number{
+    flex-shrink:0;width:29px;height:29px;border-radius:8px;
+    display:grid;place-items:center;background:#29213f;
+    color:#b9a6ff;font-size:12px;font-weight:800;
+}
+.step h3{font-size:13px;margin:2px 0 8px}
+.step p{font-size:11px;color:var(--muted);line-height:1.8;margin:0}
+.step code,.inline-code{
+    background:#1c2030;color:#c6b7ff;padding:3px 6px;
+    border-radius:4px;font-size:10px;overflow-wrap:anywhere;
+}
+.codebox{
+    background:#090d15;border:1px solid #292f40;
+    padding:14px;border-radius:7px;margin-top:11px;
+    color:#c6b7ff;font-size:11px;line-height:1.9;
+    overflow-wrap:anywhere;
+}
+.tutorial-warning{
+    border:1px solid #53452c;background:#211d16;
+    color:#d7c49e;border-radius:8px;padding:15px;
+    font-size:11px;line-height:1.8;margin-top:18px;
+}
+
+/* Credits */
+.people{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.person{
+    background:#171c29;border:1px solid #2b3245;
+    border-radius:8px;padding:14px;
+}
+.person strong{font-size:12px;display:block}
+.person span{font-size:10px;color:#a994ff;display:block;margin-top:6px}
+.credit-count{font-size:11px;color:var(--muted)}
+
+/* Footer */
+footer{
+    border-top:1px solid var(--border);padding:24px 6%;
+    display:flex;justify-content:space-between;gap:15px;
+    align-items:center;color:var(--muted);font-size:10px;
+}
+footer button{background:none;border:0;color:var(--muted);font-size:10px}
+footer button:hover{color:white}
+.toast{
+    position:fixed;bottom:25px;left:50%;transform:translate(-50%,20px);
+    background:#202638;border:1px solid #3c455e;padding:11px 17px;
+    border-radius:8px;color:white;font-size:11px;opacity:0;
+    pointer-events:none;transition:.2s;z-index:40;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:700px){
+    nav{padding:0 4%}.navlinks{gap:0}
+    .navlinks button{padding:9px 7px;font-size:10px}
+    .navlinks .optional{display:none}
+    main{padding:0 15px 60px}
+    .hero{padding:70px 0 45px}
+    h1{letter-spacing:-2px}
+    .grid{grid-template-columns:1fr}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .key-row{grid-template-columns:1fr 1fr}
+    .key-row .field:nth-child(3){grid-column:1/-1}
+    .people{grid-template-columns:repeat(2,1fr)}
+    .page-header h1{font-size:33px}
+    footer{flex-direction:column}
+}
+
+/* Account pages */
+.auth-wrap{max-width:440px;margin:30px auto 70px}
+.auth-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:25px}
+.auth-card h2{font-size:20px;margin:0 0 8px}
+.auth-card>p{font-size:12px;color:var(--muted);line-height:1.7;margin:0 0 22px}
+.auth-form{display:flex;flex-direction:column;gap:13px}
+.auth-form label{display:flex;flex-direction:column;gap:7px;color:var(--muted);font-size:10px;font-weight:700}
+.auth-form input{width:100%;background:#0d111b;color:white;border:1px solid #30364a;border-radius:7px;padding:12px;font-size:12px;outline:none}
+.auth-form input:focus{border-color:var(--purple)}
+.auth-form button{margin-top:5px}
+.auth-switch{text-align:center;color:var(--muted);font-size:11px;margin-top:18px}
+.auth-switch button{background:none;border:0;color:#b8a8ff;font-size:11px}
+.auth-message{font-size:11px;line-height:1.6;color:#ffaaaa;min-height:16px}
+.auth-gate{padding:25px;border:1px solid #3a3455;background:#1a172a;border-radius:10px;margin:15px 0;color:#c8bee8;text-align:center}
+.auth-gate p{font-size:12px;line-height:1.7;color:var(--muted)}
+.account-status{font-size:10px;color:var(--green);margin-left:8px}
+.key-actions .save-btn{padding:7px 9px;font-size:10px;border-radius:6px;background:#29213f;color:#c9baff;border:1px solid #403663}
+@media(max-width:700px){.auth-card{padding:19px}}
+
+</style>
+</head>
+<body>
+
+<nav>
+    <a href="#" class="logo" onclick="showPage('home');return false">free<span>finity</span></a>
+    <div class="navlinks">
+        <button class="active" data-page="home" onclick="showPage('home')">Home</button>
+        <button data-page="api" onclick="showPage('api')">API</button>
+        <button data-page="tutorial" onclick="showPage('tutorial')">Tutorial</button>
+        <button class="optional" data-page="community" onclick="showPage('community')">Community</button>
+        <button class="optional" id="loginNav" onclick="showPage('login')">Log in</button>
+        <button class="launch" id="signupNav" onclick="showPage('signup')">Sign up →</button>
+        <button class="optional" id="logoutNav" style="display:none" onclick="logout()">Log out</button>
+    </div>
+</nav>
+
+<main>
+
+<!-- HOME -->
+<section class="page active" id="home">
+    <div class="hero">
+        <div class=""><span class="dot"></span> </div>
+        <h1>AI access,<br><span class="gradient">reimagined.</span></h1>
+        <p class="subtitle">
+            One API. Multiple providers. A unified interface.
+            Freefinity brings your supported AI connections together
+            into one convenient gateway.
+        </p>
+
+        <div class="community-strip" style="margin-top:27px">
+            <span class="strip-label"></span>
+            <div class="ticker-window">
+                <div class="ticker">
+                    <span>whatcheatsare.qd.je</span><span>Free-claude-code</span>
+                    <span>Jekooo/opencode-infinite</span><span>Limitless executor</span>
+                    <span>whatcheatsare.qd.je</span><span>Free-claude-code</span>
+                    <span>Jekooo/opencode-infinite</span><span>Limitless executor</span>
+                </div>
+            </div>
+            
+        </div>
+
+        <div class="actions">
+            <button class="primary" onclick="showPage('api')">Explore Freefinity API →</button>
+            <button class="secondary" onclick="showPage('tutorial')">Read the tutorial</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">
+            <h2>One place for your API keys.</h2>
+            <p>Bring your supported provider connections together.</p>
+        </div>
+        <div class="grid">
+            <div class="card">
+                <div class="card-icon">⌘</div>
+                <h3>Unified API</h3>
+                <p>Use one OpenAI-compatible gateway endpoint instead of configuring every provider separately.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">＋</div>
+                <h3>Multiple connections</h3>
+                <p>Add and organize multiple provider credentials in one dashboard.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon">∞</div>
+                <h3>Flexible routing</h3>
+                <p>Build a unified connection layer for supported models and services.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" style="text-align:center">
+        <div class="section-title">
+            <h2>Ready to connect?</h2>
+            <p>Configure your provider connections and explore the integration guide.</p>
+        </div>
+        <button class="primary" onclick="showPage('api')">Open Freefinity API →</button>
+    </div>
+</section>
+
+<!-- API -->
+<section class="page" id="api">
+    <div class="page-header">
+        <div class="eyebrow">FREEFINITY / DEVELOPER TOOLS</div>
+        <h1>Freefinity <span class="gradient">API.</span></h1>
+        <p>
+            A unified API gateway for your supported AI providers.
+            Add multiple credentials and connect compatible clients
+            through a single Freefinity endpoint.
+        </p>
+    </div>
+
+    <div class="auth-gate" id="authGate">
+        <strong>Sign in to access your API dashboard.</strong>
+        <p>Your provider connections and gateway keys are tied to your Freefinity account.</p>
+        <div class="actions">
+            <button class="primary" onclick="showPage('login')">Log in</button>
+            <button class="secondary" onclick="showPage('signup')">Create account</button>
+        </div>
+    </div>
+
+    <div id="apiContent" hidden>
+    <div class="stats">
+        <div class="stat">
+            <small>Configured credentials</small>
+            <strong id="keyCount">0</strong>
+        </div>
+        <div class="stat">
+            <small>Provider types</small>
+            <strong id="providerCount">0</strong>
+        </div>
+        <div class="stat">
+            <small>Gateway status</small>
+            <strong style="font-size:16px;color:var(--muted);margin-top:15px">Not connected</strong>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-heading">
+            <div>
+                <h2>Provider credentials</h2>
+                <p>Manage your upstream API credentials.</p>
+            </div>
+            <button class="primary" onclick="addKey()">＋ Add API key</button>
+        </div>
+        <div class="panel-content">
+            <div class="key-list" id="keyList"></div>
+            <div class="note">
+                <strong>Backend connection:</strong> The dashboard is wired to placeholder API routes.
+                Provider credentials will be sent to the backend over HTTPS and must be
+                encrypted at rest. Until those routes are deployed, saving and loading
+                credentials will report that the backend is unavailable.
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-heading">
+            <div>
+                <h2>Unified gateway</h2>
+                <p>Your clients will connect to this endpoint.</p>
+            </div>
+            <span class="pill">OPENAI COMPATIBLE</span>
+        </div>
+        <div class="panel-content">
+            <div class="endpoint-label">BASE URL</div>
+            <div class="endpoint">
+                <code id="endpoint">https://YOUR-FREEFINITY-DOMAIN/v1</code>
+                <button class="copy-btn" onclick="copyText('https://YOUR-FREEFINITY-DOMAIN/v1')">Copy</button>
+            </div>
+
+            <div class="endpoint-label" style="margin-top:20px">GATEWAY API KEY</div>
+            <p style="font-size:11px;color:var(--muted);line-height:1.7">
+                Your gateway key is separate from your upstream provider credentials.
+                Generate one when the backend is configured.
+            </p>
+            <div class="gateway-key">
+                <input class="text-input" value="No gateway key generated" readonly id="gatewayKey">
+                <button class="secondary" onclick="generateGatewayKey()">Generate key</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-heading">
+            <div>
+                <h2>How the gateway works</h2>
+                <p>One interface between your client and supported providers.</p>
+            </div>
+        </div>
+        <div class="panel-content">
+            <div class="grid">
+                <div class="card">
+                    <div class="card-icon">01</div>
+                    <h3>Connect</h3>
+                    <p>Register credentials for providers that permit this kind of API use.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">02</div>
+                    <h3>Route</h3>
+                    <p>The backend selects a configured provider credential and forwards requests.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">03</div>
+                    <h3>Normalize</h3>
+                    <p>Compatible responses are returned through your unified API interface.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+
+
+<!-- LOGIN -->
+<section class="page" id="login">
+    <div class="page-header" style="text-align:center">
+        <div class="eyebrow">FREEFINITY / ACCOUNT</div>
+        <h1>Welcome <span class="gradient">back.</span></h1>
+        <p style="margin-left:auto;margin-right:auto">Log in to manage your provider connections and API keys.</p>
+    </div>
+    <div class="auth-wrap">
+        <div class="auth-card">
+            <h2>Log in</h2>
+            <p>Access your Freefinity developer dashboard.</p>
+            <form class="auth-form" id="loginForm">
+                <label>Email address<input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+                <label>Password<input name="password" type="password" autocomplete="current-password" required placeholder="Your password"></label>
+                <div class="auth-message" id="loginMessage" role="status"></div>
+                <button class="primary" type="submit">Log in →</button>
+            </form>
+            <div class="auth-switch">New to Freefinity? <button onclick="showPage('signup')">Create an account</button></div>
+        </div>
+    </div>
+</section>
+
+<!-- SIGNUP -->
+<section class="page" id="signup">
+    <div class="page-header" style="text-align:center">
+        <div class="eyebrow">FREEFINITY / GET STARTED</div>
+        <h1>Create your <span class="gradient">account.</span></h1>
+        <p style="margin-left:auto;margin-right:auto">One account for your provider connections and unified API access.</p>
+    </div>
+    <div class="auth-wrap">
+        <div class="auth-card">
+            <h2>Sign up</h2>
+            <p>Create your Freefinity developer account.</p>
+            <form class="auth-form" id="signupForm">
+                <label>Email address<input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+                <label>Password<input name="password" type="password" autocomplete="new-password" minlength="12" required placeholder="At least 12 characters"></label>
+                <label>Confirm password<input name="confirmPassword" type="password" autocomplete="new-password" minlength="12" required placeholder="Enter your password again"></label>
+                <div class="auth-message" id="signupMessage" role="status"></div>
+                <button class="primary" type="submit">Create account →</button>
+            </form>
+            <div class="auth-switch">Already have an account? <button onclick="showPage('login')">Log in</button></div>
+        </div>
+    </div>
+</section>
+
+<!-- TUTORIAL -->
+<section class="page" id="tutorial">
+    <div class="page-header">
+        <div class="eyebrow">DOCUMENTATION / INTEGRATIONS</div>
+        <h1>Connect <span class="gradient">Free Claude Code.</span></h1>
+        <p>
+            Use Freefinity as a custom provider in Free Claude Code.
+            This guide follows the Custom Providers workflow in the
+            official FCC repository.
+        </p>
+        <div style="margin-top:15px">
+            <a class="copy-btn" href="https://github.com/alishahryar1/free-claude-code" target="_blank" rel="noopener">
+                View GitHub repository ↗
+            </a>
+        </div>
+    </div>
+
+    <div class="steps">
+        <div class="step">
+            <div class="step-number">1</div>
+            <div>
+                <h3>Install and launch Free Claude Code</h3>
+                <p>
+                    Follow the official installation instructions for your operating
+                    system. Launch FCC and open its Admin UI.
+                </p>
+                <div class="codebox">
+                    Windows: Open Free Claude Code from the Start menu.<br>
+                    macOS: Open Free Claude Code from Applications.<br>
+                    Linux: <code>fcc-server</code>
+                </div>
+                <p style="margin-top:10px">
+                    Official installation:
+                    <a href="https://github.com/alishahryar1/free-claude-code#quick-start"
+                       target="_blank" rel="noopener" style="color:#ad9aff">Quick Start ↗</a>
+                </p>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-number">2</div>
+            <div>
+                <h3>Open Custom Providers</h3>
+                <p>
+                    In the FCC Admin UI, navigate to
+                    <code>Providers → Custom providers → Add provider</code>.
+                </p>
+                <p style="margin-top:9px">
+                    This allows FCC to connect to an external API endpoint.
+                </p>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-number">3</div>
+            <div>
+                <h3>Configure Freefinity</h3>
+                <p>Use the following settings once your Freefinity backend is deployed:</p>
+                <div class="codebox">
+                    Provider name: Freefinity<br>
+                    API base URL: https://YOUR-FREEFINITY-DOMAIN/v1<br>
+                    API format: OpenAI-compatible<br>
+                    API key: YOUR_FREEFINITY_GATEWAY_KEY<br>
+                    Model IDs: Leave empty for discovery, or enter supported IDs manually
+                </div>
+                <p style="margin-top:10px">
+                    Replace the example domain and gateway key with your actual
+                    deployment values.
+                </p>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-number">4</div>
+            <div>
+                <h3>Save your provider</h3>
+                <p>
+                    Save the custom provider configuration. FCC can discover models
+                    automatically if the gateway supports model discovery. Otherwise,
+                    enter the exact model IDs supported by Freefinity.
+                </p>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-number">5</div>
+            <div>
+                <h3>Select a Freefinity model</h3>
+                <p>
+                    Navigate to Model Config and select a model from the provider.
+                    Custom provider model identifiers use the configured provider ID
+                    as their prefix.
+                </p>
+                <div class="codebox">
+                    Example model format:<br>
+                    freefinity/model-id
+                </div>
+                <p style="margin-top:10px">
+                    The exact provider prefix depends on the ID assigned to your
+                    custom provider in FCC.
+                </p>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-number">6</div>
+            <div>
+                <h3>Start coding</h3>
+                <p>
+                    Once the provider is saved and a model is selected, launch
+                    your configured coding agent.
+                </p>
+                <div class="codebox">
+                    fcc-claude
+                </div>
+                <p style="margin-top:10px">
+                    If the connection fails, verify the gateway URL, authentication,
+                    model ID, and that the backend supports the requested API format.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="tutorial-warning">
+        <strong>Compatibility note:</strong> Free Claude Code supports custom providers
+        with an API format and base URL. Freefinity must actually implement the
+        OpenAI-compatible endpoints, model discovery where needed, streaming,
+        and authentication before this tutorial will work. This page is documentation,
+        not proof that the gateway is already running.
+    </div>
+
+    <div class="actions" style="justify-content:flex-start">
+        <a class="secondary" href="https://github.com/alishahryar1/free-claude-code"
+           target="_blank" rel="noopener">FCC GitHub repository ↗</a>
+    </div>
+</section>
+
+<!-- COMMUNITY -->
+<section class="page" id="community">
+    <div class="page-header">
+        <div class="eyebrow">FREEFINITY / PEOPLE</div>
+        <h1>Built by <span class="gradient">one guy and lots of AI slop</span></h1>
+        <p>
+            Freefinity is built buy a single guy and not alot of time. Building freefinity is one of the greatest things ive ever done, and couldnt exist without these *projects. Not the people. The people didnt help.
+        </p>
+    </div>
+
+    <div class="panel">
+        <div class="panel-heading">
+            <div>
+                <h2>Supporters & contributors</h2>
+                <p>People who make Freefinity possible.</p>
+            </div>
+            <span class="credit-count" id="communityCount">6 listed</span>
+        </div>
+        <div class="panel-content">
+            <div class="people" id="people">
+                <div class="person"><strong>Liam T </strong><span>Founder</span></div>
+                <div class="person"><strong>Free-Claude-Code</strong><span>claude code UI</span></div>
+                <div class="person"><strong>Nonecap</strong><span>Old hCaptcha solver</span></div>
+                <div class="person"><strong>Tampermonkey</strong><span>JS interperetor for gmail </span></div>
+                <div class="person"><strong>Playwright</strong><span>Main automation thingy-majigy</span></div>
+                <div class="person"><strong>@agent_136132</strong><span>Emotional support person</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="note">
+        Want to be credited? yeah no. idk what the AI was thinking when it vibecoded this website.
+    </div>
+</section>
+
+</main>
+
+<footer>
+    <div>© 2026 Freefinity. Independent community project.</div>
+    <div>
+        <button onclick="showPage('home')">Home</button>
+        <button onclick="showPage('api')">API</button>
+        <button onclick="showPage('tutorial')">Documentation</button>
+        <button onclick="showPage('community')">Community</button>
+    </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Freefinity frontend/API contract.
+// These routes are placeholders until the matching Vercel functions are deployed.
+const API = {
+    auth: {
+        signup: '/api/auth/signup',
+        login: '/api/auth/login',
+        logout: '/api/auth/logout',
+        me: '/api/auth/me'
+    },
+    credentials: '/api/credentials',
+    gatewayKeys: '/api/gateway-keys',
+    models: '/v1/models',
+    chatCompletions: '/v1/chat/completions'
+};
+
+let currentUser = null;
+let credentials = [];
+let nextId = 1;
+
+async function apiRequest(path, options = {}) {
+    const response = await fetch(path, {
+        ...options,
+        credentials: 'same-origin',
+        headers: {
+            ...(options.body ? {'Content-Type': 'application/json'} : {}),
+            ...(options.headers || {})
+        }
+    });
+
+    const contentType = response.headers.get('content-type') || '';
+    const data = contentType.includes('application/json')
+        ? await response.json()
+        : await response.text();
+
+    if (!response.ok) {
+        const message = data && typeof data === 'object'
+            ? (data.error || data.message || `Request failed (${response.status})`)
+            : (data || `Request failed (${response.status})`);
+        throw new Error(message);
+    }
+    return data;
+}
+
+function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.navlinks button[data-page]').forEach(b => b.classList.remove('active'));
+    const page = document.getElementById(id);
+    if (!page) return;
+    page.classList.add('active');
+    const button = document.querySelector(`[data-page="${id}"]`);
+    if (button) button.classList.add('active');
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function updateAccountUI() {
+    const loggedIn = !!currentUser;
+    document.getElementById('loginNav').style.display = loggedIn ? 'none' : '';
+    document.getElementById('signupNav').style.display = loggedIn ? 'none' : '';
+    document.getElementById('logoutNav').style.display = loggedIn ? '' : 'none';
+    document.getElementById('authGate').hidden = loggedIn;
+    document.getElementById('apiContent').hidden = !loggedIn;
+}
+
+async function refreshSession() {
+    try {
+        const result = await apiRequest(API.auth.me);
+        currentUser = result.user || result;
+        updateAccountUI();
+        await loadCredentials();
+    } catch (error) {
+        currentUser = null;
+        credentials = [];
+        updateAccountUI();
+        renderKeys();
+    }
+}
+
+async function submitAuth(formId, endpoint, messageId, successText) {
+    const form = document.getElementById(formId);
+    const message = document.getElementById(messageId);
+    form.addEventListener('submit', async event => {
+        event.preventDefault();
+        message.textContent = '';
+        const values = Object.fromEntries(new FormData(form).entries());
+
+        if (formId === 'signupForm' && values.password !== values.confirmPassword) {
+            message.textContent = 'The passwords do not match.';
+            return;
+        }
+
+        const button = form.querySelector('button[type="submit"]');
+        button.disabled = true;
+        button.textContent = 'Please wait...';
+        try {
+            delete values.confirmPassword;
+            const result = await apiRequest(endpoint, {
+                method: 'POST',
+                body: JSON.stringify(values)
+            });
+
+            // The backend should set a Secure, HttpOnly, SameSite cookie.
+            currentUser = result.user || {email: values.email};
+            updateAccountUI();
+            form.reset();
+            showToast(successText);
+            await loadCredentials();
+            showPage('api');
+        } catch (error) {
+            message.textContent = error.message.includes('Failed to fetch')
+                ? 'Backend not connected yet. This endpoint is planned but not deployed.'
+                : error.message;
+        } finally {
+            button.disabled = false;
+            button.textContent = formId === 'signupForm' ? 'Create account →' : 'Log in →';
+        }
+    });
+}
+
+async function logout() {
+    try {
+        await apiRequest(API.auth.logout, {method: 'POST'});
+    } catch (error) {
+        showToast(error.message.includes('Failed to fetch')
+            ? 'Logout endpoint is not connected yet.'
+            : error.message);
+    }
+    currentUser = null;
+    credentials = [];
+    updateAccountUI();
+    renderKeys();
+    showPage('home');
+}
+
+function addKey() {
+    credentials.push({id: `new-${nextId++}`, provider: 'Anthropic', label: '', key: '', isNew: true});
+    renderKeys();
+}
+
+async function saveKey(id) {
+    const item = credentials.find(k => String(k.id) === String(id));
+    if (!item) return;
+    if (!item.key.trim()) {
+        showToast('Enter a provider API key first.');
+        return;
+    }
+    try {
+        const result = await apiRequest(API.credentials, {
+            method: 'POST',
+            body: JSON.stringify({provider: item.provider, label: item.label, key: item.key})
+        });
+        showToast('Provider connection saved.');
+        await loadCredentials();
+    } catch (error) {
+        showToast(error.message.includes('Failed to fetch')
+            ? 'Save endpoint is not connected yet.'
+            : error.message);
+    }
+}
+
+async function removeKey(id) {
+    const item = credentials.find(k => String(k.id) === String(id));
+    if (!item) return;
+    if (item.isNew) {
+        credentials = credentials.filter(k => String(k.id) !== String(id));
+        renderKeys();
+        return;
+    }
+    try {
+        await apiRequest(`${API.credentials}/${encodeURIComponent(id)}`, {method: 'DELETE'});
+        showToast('Provider connection removed.');
+        await loadCredentials();
+    } catch (error) {
+        showToast(error.message.includes('Failed to fetch')
+            ? 'Delete endpoint is not connected yet.'
+            : error.message);
+    }
+}
+
+function updateKey(id, field, value) {
+    const item = credentials.find(k => String(k.id) === String(id));
+    if (item) item[field] = value;
+    updateStats();
+}
+
+function renderKeys() {
+    const list = document.getElementById('keyList');
+    if (!list) return;
+    if (!credentials.length) {
+        list.innerHTML = '<div class="empty">No provider connections yet.<br>Click + Add API key to create your first connection.</div>';
+    } else {
+        list.innerHTML = '';
+        credentials.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'key-row';
+
+            const provider = document.createElement('div');
+            provider.className = 'field';
+            const providerLabel = document.createElement('label');
+            providerLabel.textContent = 'PROVIDER';
+            const select = document.createElement('select');
+            ['Anthropic', 'OpenAI', 'Google Gemini', 'OpenRouter', 'Mistral', 'DeepSeek', 'Custom provider'].forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                select.appendChild(option);
+            });
+            select.value = item.provider || 'Custom provider';
+            select.addEventListener('change', e => updateKey(item.id, 'provider', e.target.value));
+            provider.append(providerLabel, select);
+
+            const label = document.createElement('div');
+            label.className = 'field';
+            const labelTitle = document.createElement('label');
+            labelTitle.textContent = 'LABEL';
+            const labelInput = document.createElement('input');
+            labelInput.placeholder = 'My API key';
+            labelInput.value = item.label || '';
+            labelInput.addEventListener('input', e => updateKey(item.id, 'label', e.target.value));
+            label.append(labelTitle, labelInput);
+
+            const key = document.createElement('div');
+            key.className = 'field';
+            const keyTitle = document.createElement('label');
+            keyTitle.textContent = item.isNew ? 'API KEY' : 'SAVED CREDENTIAL';
+            const keyInput = document.createElement('input');
+            keyInput.type = 'password';
+            keyInput.placeholder = item.isNew ? 'Enter provider credential' : 'Stored securely — re-enter to replace';
+            keyInput.autocomplete = 'new-password';
+            keyInput.value = '';
+            keyInput.addEventListener('input', e => updateKey(item.id, 'key', e.target.value));
+            key.append(keyTitle, keyInput);
+
+            const actions = document.createElement('div');
+            actions.className = 'key-actions';
+            if (item.isNew) {
+                const save = document.createElement('button');
+                save.className = 'save-btn';
+                save.textContent = 'Save';
+                save.addEventListener('click', () => saveKey(item.id));
+                actions.append(save);
+            }
+            const remove = document.createElement('button');
+            remove.className = 'icon-btn remove-btn';
+            remove.textContent = '×';
+            remove.title = 'Remove credential';
+            remove.addEventListener('click', () => removeKey(item.id));
+            actions.append(remove);
+            row.append(provider, label, key, actions);
+            list.append(row);
+        });
+    }
+    updateStats();
+}
+
+async function loadCredentials() {
+    if (!currentUser) return;
+    try {
+        const result = await apiRequest(API.credentials);
+        credentials = Array.isArray(result) ? result : (result.credentials || []);
+        credentials = credentials.map(item => ({...item, key: '', isNew: false}));
+        renderKeys();
+    } catch (error) {
+        if (error.message.includes('Failed to fetch')) {
+            showToast('Credentials endpoint is planned but not deployed yet.');
+        } else {
+            showToast(error.message);
+        }
+    }
+}
+
+function updateStats() {
+    document.getElementById('keyCount').textContent = credentials.length;
+    const providers = new Set(credentials.map(k => k.provider));
+    document.getElementById('providerCount').textContent = providers.size;
+}
+
+async function generateGatewayKey() {
+    try {
+        const result = await apiRequest(API.gatewayKeys, {method: 'POST', body: JSON.stringify({})});
+        const key = result.key || result.api_key;
+        if (!key) throw new Error('The backend did not return a gateway key.');
+        document.getElementById('gatewayKey').value = key;
+        showToast('Gateway key generated. Copy it now; it may only be shown once.');
+    } catch (error) {
+        showToast(error.message.includes('Failed to fetch')
+            ? 'Gateway-key endpoint is planned but not deployed yet.'
+            : error.message);
+    }
+}
+
+async function copyText(value) {
+    try {
+        await navigator.clipboard.writeText(value);
+        showToast('Copied to clipboard.');
+    } catch {
+        showToast('Clipboard access unavailable.');
+    }
+}
+
+let toastTimer;
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
+}
+
+submitAuth('loginForm', API.auth.login, 'loginMessage', 'Logged in.');
+submitAuth('signupForm', API.auth.signup, 'signupMessage', 'Account created.');
+renderKeys();
+refreshSession();
+</script>
+</body>
+</html>
