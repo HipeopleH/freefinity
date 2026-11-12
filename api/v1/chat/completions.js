@@ -98,8 +98,8 @@ module.exports = async function handler(req, res) {
         for (const line of lines) {
           const usage = parseSseUsageLine(line);
           if (usage) {
-            promptTokens = usage.prompt_tokens;
-            completionTokens = usage.completion_tokens;
+            if (usage.prompt_tokens) promptTokens = usage.prompt_tokens;
+            if (usage.completion_tokens) completionTokens = usage.completion_tokens;
           }
         }
       }
