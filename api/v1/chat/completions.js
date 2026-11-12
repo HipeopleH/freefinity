@@ -1,5 +1,5 @@
 const { sendJson } = require('../../../lib/server');
-const { authenticateGateway, PROVIDERS, getProviderCredential, recordGatewayUsage } = require('../../../lib/gateway');
+const { authenticateGateway, PROVIDERS, requestWithCredentialFallback, recordGatewayUsage } = require('../../../lib/gateway');
 
 function readUsage(value) {
   const usage = value && (value.usage || (value.message && value.message.usage));
@@ -57,21 +57,19 @@ module.exports = async function handler(req, res) {
       return sendJson(res, 400, { error: { message: 'This provider adapter is not available yet.', type: 'invalid_request_error' } });
     }
 
-    const providerKey = await getProviderCredential(auth.userId, provider);
-    if (!providerKey) {
-      return sendJson(res, 400, { error: { message: 'No saved ' + config.label + ' credential found for this account.', type: 'invalid_request_error' } });
-    }
-
     const payload = { ...body, model };
-    const upstream = await fetch(config.url, {
+    const routed = await requestWithCredentialFallback(auth.userId, provider, config.url, {
       method: 'POST',
       headers: {
-        'Authorization': 'Bearer ' + providerKey,
         'Content-Type': 'application/json',
         ...(provider === 'openrouter' ? { 'HTTP-Referer': 'https://freefinity.vercel.app', 'X-Title': 'Freefinity' } : {})
       },
       body: JSON.stringify(payload)
     });
+    if (!routed.response) {
+      return sendJson(res, 400, { error: { message: routed.error || ('No saved ' + config.label + ' credential found.'), type: 'invalid_request_error' } });
+    }
+    const upstream = routed.response;
 
     res.statusCode = upstream.status;
     res.setHeader('Cache-Control', 'no-store');
