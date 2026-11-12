@@ -495,13 +495,12 @@ footer button:hover{color:white}
                 <div class="auth-message" id="signupMessage" role="status"></div>
                 <button class="primary" type="submit">Create account →</button>
             </form>
-            <form class="auth-form" id="verifyEmailForm" hidden>
-                <p style="font-size:12px;color:var(--muted);line-height:1.7;margin:0">We sent a 6-digit verification code to <strong id="verifyEmailAddress" style="color:white"></strong>. Enter it below to activate your account.</p>
-                <label>Verification code<input name="token" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required placeholder="000000"></label>
+            <div class="auth-gate" id="verifyEmailPanel" hidden>
+                <h3 style="margin:0 0 9px;color:white">Check your email</h3>
+                <p style="margin:0">We sent a confirmation link to <strong id="verifyEmailAddress" style="color:white"></strong>. Open that email and click the link to activate your Freefinity account. This page will finish signing you in automatically.</p>
                 <div class="auth-message" id="verifyMessage" role="status"></div>
-                <button class="primary" type="submit">Verify email →</button>
-                <button class="secondary" type="button" id="backToSignup">Back</button>
-            </form>
+                <button class="secondary" type="button" id="backToSignup">Use a different email</button>
+            </div>
             <div class="auth-switch">Already have an account? <button onclick="showPage('login')">Log in</button></div>
         </div>
     </div>
@@ -702,7 +701,7 @@ const API = {
         login: '/api/auth/login',
         logout: '/api/auth/logout',
         me: '/api/auth/me',
-        verify: '/api/auth/verify'
+        completeConfirmation: '/api/auth/complete-confirmation'
     },
     credentials: '/api/credentials',
     gatewayKeys: '/api/gateway-keys',
@@ -1020,43 +1019,45 @@ document.getElementById('signupForm').addEventListener('submit', () => {
     const email = document.querySelector('#signupForm input[name="email"]').value.trim();
     if (email) pendingVerificationEmail = email;
 });
-document.getElementById('verifyEmailForm').addEventListener('submit', async event => {
-    event.preventDefault();
-    const form = event.currentTarget;
+document.getElementById('backToSignup').addEventListener('click', () => {
+    document.getElementById('verifyEmailPanel').hidden = true;
+    document.getElementById('signupForm').hidden = false;
+});
+
+async function handleEmailConfirmation() {
+    const hash = window.location.hash;
+    if (!hash || !hash.includes('access_token=')) return;
+    const params = new URLSearchParams(hash.slice(1));
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    const type = params.get('type');
+    if (!accessToken || !refreshToken || (type && type !== 'signup')) return;
+
+    history.replaceState(null, '', window.location.pathname + window.location.search);
     const message = document.getElementById('verifyMessage');
-    const button = form.querySelector('button[type="submit"]');
-    message.textContent = '';
-    button.disabled = true;
-    button.textContent = 'Verifying...';
+    message.textContent = 'Confirming your email...';
+    document.getElementById('signupForm').hidden = true;
+    document.getElementById('verifyEmailPanel').hidden = false;
+    document.getElementById('verifyEmailAddress').textContent = pendingVerificationEmail || 'your email address';
     try {
-        const token = new FormData(form).get('token').toString().trim();
-        const result = await apiRequest(API.auth.verify, {
+        const result = await apiRequest(API.auth.completeConfirmation, {
             method: 'POST',
-            body: JSON.stringify({email: pendingVerificationEmail, token})
+            body: JSON.stringify({access_token: accessToken, refresh_token: refreshToken})
         });
-        currentUser = result.user || {email: pendingVerificationEmail};
+        currentUser = result.user;
         updateAccountUI();
-        form.reset();
+        document.getElementById('verifyEmailPanel').hidden = true;
         document.getElementById('signupForm').reset();
-        document.getElementById('signupForm').hidden = false;
-        form.hidden = true;
         pendingVerificationEmail = '';
-        showToast('Email verified. Account activated.');
+        showToast('Email confirmed. Welcome to Freefinity!');
         await loadCredentials();
         showPage('api');
     } catch (error) {
         message.textContent = error.message;
-    } finally {
-        button.disabled = false;
-        button.textContent = 'Verify email →';
     }
-});
-document.getElementById('backToSignup').addEventListener('click', () => {
-    document.getElementById('verifyEmailForm').hidden = true;
-    document.getElementById('signupForm').hidden = false;
-});
+}
 renderKeys();
-refreshSession();
+handleEmailConfirmation().finally(refreshSession);
 </script>
 </body>
 </html>
