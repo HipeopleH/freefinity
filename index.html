@@ -271,6 +271,14 @@ footer button:hover{color:white}
 .usage-model-row strong{font-size:10px;overflow-wrap:anywhere}
 .usage-model-row span{color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
 .usage-note{font-size:10px;color:var(--muted);line-height:1.7;margin-top:12px}
+.balance-apps{display:flex;flex-direction:column;gap:7px;margin-top:14px}
+.balance-app{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:#151a27;border:1px solid #2a3041;border-radius:7px;padding:10px 12px}
+.balance-app strong{font-size:11px;overflow-wrap:anywhere}
+.balance-app small{display:block;color:var(--muted);font-size:9px;margin-top:4px}
+.balance-app span{font-size:11px;color:#c9baff;font-variant-numeric:tabular-nums}
+.balance-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.balance-controls input{flex:1;min-width:220px;background:#0d111b;border:1px solid #30384b;color:var(--text);border-radius:7px;padding:10px 12px;font-size:11px}
+.balance-status{font-size:10px;color:var(--muted);margin-top:8px;line-height:1.6}
 @media(max-width:700px){.auth-card{padding:19px}.usage-stats{grid-template-columns:1fr 1fr}.usage-model-row{grid-template-columns:1fr 1fr}.usage-model-row strong{grid-column:1/-1}.usage-model-row span{text-align:left}}
 
 </style>
@@ -415,6 +423,27 @@ footer button:hover{color:white}
         </div>
         <div class="panel-content"><div class="model-list" id="aceModelList"><div class="empty">Save an Ace Data Cloud connection to discover its available models.</div></div></div>
     </div>
+    <div class="panel">
+        <div class="panel-heading">
+            <div><h2>Ace Data Cloud credits</h2><p id="aceBalanceStatus">Connect your Ace account to view remaining credits.</p></div>
+            <button class="secondary" id="refreshAceBalance" onclick="loadAceBalance(true)">Refresh balance</button>
+        </div>
+        <div class="panel-content">
+            <div class="usage-stats">
+                <div class="usage-stat"><small>REMAINING CREDITS</small><strong id="aceCreditsRemaining">—</strong></div>
+                <div class="usage-stat"><small>USED CREDITS</small><strong id="aceCreditsUsed">—</strong></div>
+                <div class="usage-stat"><small>APPLICATIONS</small><strong id="aceApplicationCount">—</strong></div>
+            </div>
+            <div class="balance-apps" id="aceBalanceApps"><div class="empty">Add an Ace platform token to retrieve your balance.</div></div>
+            <div class="balance-controls">
+                <input id="acePlatformToken" type="password" autocomplete="off" spellcheck="false" placeholder="platform-... (management token)">
+                <button class="secondary" id="saveAcePlatformToken" onclick="saveAcePlatformToken()">Save token</button>
+                <button class="secondary" id="removeAcePlatformToken" onclick="removeAcePlatformToken()" style="display:none">Remove</button>
+            </div>
+            <p class="balance-status" id="acePlatformTokenStatus">This is separate from your regular Ace API key. It is encrypted before storage and used only to read your Ace account balance. Do not paste it into chat or share it.</p>
+        </div>
+    </div>
+
     <div class="panel">
         <div class="panel-heading">
             <div><h2>Freefinity API usage</h2><p>Aggregate usage across your Freefinity gateway API keys.</p></div>
@@ -743,6 +772,8 @@ const API = {
     credentials: '/api/credentials',
     gatewayKeys: '/api/gateway-keys',
     aceModels: '/api/ace/models',
+    aceManagementKey: '/api/ace/management-key',
+    aceBalance: '/api/ace/balance',
     usage: '/api/usage',
     models: '/v1/models',
     chatCompletions: '/v1/chat/completions'
@@ -1006,7 +1037,7 @@ async function loadCredentials() {
         credentials = Array.isArray(result) ? result : (result.credentials || []);
         credentials = credentials.map(item => ({...item, key: '', isNew: false}));
         renderKeys();
-        await Promise.all([loadAceModels(), loadUsage()]);
+        await Promise.all([loadAceModels(), loadUsage(), loadAceBalance()]);
     } catch (error) {
         showToast(error.message);
     }
@@ -1065,6 +1096,101 @@ async function loadAceModels(showFeedback = false) {
         if (showFeedback) showToast(error.message);
     } finally {
         if (button) button.disabled = false;
+    }
+}
+
+async function loadAceBalance(showFeedback = false) {
+    const status = document.getElementById('aceBalanceStatus');
+    const apps = document.getElementById('aceBalanceApps');
+    const refresh = document.getElementById('refreshAceBalance');
+    const remove = document.getElementById('removeAcePlatformToken');
+    if (!currentUser || !status || !apps) return;
+    if (refresh) refresh.disabled = true;
+    try {
+        const config = await apiRequest(API.aceManagementKey);
+        if (!config.configured) {
+            status.textContent = 'Add your separate Ace platform-management token to view your account credits.';
+            apps.innerHTML = '<div class="empty">No Ace management token connected yet.</div>';
+            document.getElementById('aceCreditsRemaining').textContent = '—';
+            document.getElementById('aceCreditsUsed').textContent = '—';
+            document.getElementById('aceApplicationCount').textContent = '—';
+            if (remove) remove.style.display = 'none';
+            return;
+        }
+        if (remove) remove.style.display = '';
+        const result = await apiRequest(API.aceBalance);
+        document.getElementById('aceCreditsRemaining').textContent = formatCount(result.total_remaining);
+        document.getElementById('aceCreditsUsed').textContent = formatCount(result.total_used);
+        document.getElementById('aceApplicationCount').textContent = formatCount(result.application_count);
+        apps.replaceChildren();
+        (result.applications || []).forEach(app => {
+            const row = document.createElement('div');
+            row.className = 'balance-app';
+            const info = document.createElement('div');
+            const title = document.createElement('strong');
+            title.textContent = app.service_id || 'Ace application';
+            const detail = document.createElement('small');
+            detail.textContent = 'Scope: ' + app.scope +
+                (app.disabled ? ' · Disabled' : '') +
+                (app.expired_at ? ' · Expires: ' + new Date(app.expired_at).toLocaleDateString() : '') +
+                (app.allow_overdraft ? ' · Overdraft enabled' : '');
+            info.append(title, detail);
+            const amount = document.createElement('span');
+            amount.textContent = formatCount(app.remaining_amount) + ' credits';
+            row.append(info, amount);
+            apps.append(row);
+        });
+        if (!result.applications || !result.applications.length) {
+            apps.innerHTML = '<div class="empty">Ace returned no active application balances.</div>';
+        }
+        const updated = result.fetched_at ? new Date(result.fetched_at).toLocaleString() : 'just now';
+        status.textContent = 'Balance retrieved from Ace · Updated ' + updated;
+        document.getElementById('acePlatformTokenStatus').textContent =
+            'Your platform token is stored encrypted on the server. Balance data comes directly from Ace; positive credits do not guarantee a model or application is available.';
+        if (showFeedback) showToast('Ace balance refreshed.');
+    } catch (error) {
+        status.textContent = 'Could not retrieve your Ace balance.';
+        apps.replaceChildren();
+        const message = document.createElement('div');
+        message.className = 'empty';
+        message.textContent = error.message;
+        apps.append(message);
+        if (showFeedback) showToast(error.message);
+    } finally {
+        if (refresh) refresh.disabled = false;
+    }
+}
+
+async function saveAcePlatformToken() {
+    const input = document.getElementById('acePlatformToken');
+    const token = input.value.trim();
+    if (!token) return showToast('Paste your Ace platform token first.');
+    const button = document.getElementById('saveAcePlatformToken');
+    button.disabled = true;
+    try {
+        await apiRequest(API.aceManagementKey, {method:'POST', body:JSON.stringify({token})});
+        input.value = '';
+        showToast('Ace management token saved securely.');
+        await loadAceBalance(true);
+    } catch (error) {
+        showToast(error.message);
+    } finally {
+        button.disabled = false;
+    }
+}
+
+async function removeAcePlatformToken() {
+    if (!confirm('Remove the saved Ace platform-management token?')) return;
+    const button = document.getElementById('removeAcePlatformToken');
+    button.disabled = true;
+    try {
+        await apiRequest(API.aceManagementKey, {method:'DELETE'});
+        showToast('Ace management token removed.');
+        await loadAceBalance();
+    } catch (error) {
+        showToast(error.message);
+    } finally {
+        button.disabled = false;
     }
 }
 
