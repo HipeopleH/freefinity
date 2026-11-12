@@ -37,12 +37,21 @@ module.exports = async function handler(req, res) {
     }
 
     requestedModel = body.model;
-    const slash = body.model.indexOf('/');
-    if (slash < 1) {
-      return sendJson(res, 400, { error: { message: 'Use a provider-prefixed model ID, for example ace-data-cloud/claude-sonnet-4-6.', type: 'invalid_request_error' } });
+    const parts = body.model.split('/');
+    let provider = parts[0].toLowerCase();
+    let model = parts.slice(1).join('/');
+
+    // Accept raw Ace model IDs, Freefinity-prefixed IDs, and the explicit
+    // ace-data-cloud/<model> IDs returned by /v1/models.
+    if (!PROVIDERS[provider]) {
+      if (parts.length > 1 && PROVIDERS[parts[1].toLowerCase()]) {
+        provider = parts[1].toLowerCase();
+        model = parts.slice(2).join('/');
+      } else {
+        provider = 'ace-data-cloud';
+        model = parts.length > 1 ? parts.slice(1).join('/') : body.model;
+      }
     }
-    const provider = body.model.slice(0, slash).toLowerCase();
-    const model = body.model.slice(slash + 1);
     const config = PROVIDERS[provider];
     if (!config) {
       return sendJson(res, 400, { error: { message: 'This provider adapter is not available yet.', type: 'invalid_request_error' } });
@@ -70,6 +79,8 @@ module.exports = async function handler(req, res) {
 
     if (!upstream.body) {
       res.end();
+      try { await recordGatewayUsage(auth, requestedModel, 0, 0); }
+      catch (usageError) { console.error('Freefinity usage recording failed:', usageError.message); }
       return;
     }
 
