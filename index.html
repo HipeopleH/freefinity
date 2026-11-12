@@ -797,9 +797,10 @@ async function submitAuth(formId, endpoint, messageId, successText) {
             if (formId === 'signupForm' && result.requiresEmailConfirmation) {
                 document.getElementById('verifyEmailAddress').textContent = values.email;
                 form.hidden = true;
-                document.getElementById('verifyEmailForm').hidden = false;
+                document.getElementById('verifyEmailPanel').hidden = false;
+                document.getElementById('verifyMessage').textContent = '';
                 message.textContent = '';
-                showToast('Check your email for the 6-digit code.');
+                showToast('Check your email for the confirmation link.');
                 return;
             }
 
