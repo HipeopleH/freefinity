@@ -389,10 +389,7 @@ footer button:hover{color:white}
         <div class="panel-content">
             <div class="key-list" id="keyList"></div>
             <div class="note">
-                <strong>Backend connection:</strong> The dashboard is wired to placeholder API routes.
-                Provider credentials will be sent to the backend over HTTPS and must be
-                encrypted at rest. Until those routes are deployed, saving and loading
-                credentials will report that the backend is unavailable.
+                <strong>Secure backend connection:</strong> Provider credentials are sent to Freefinity over HTTPS and encrypted before storage. Your original provider key is never returned to the browser after saving.
             </div>
         </div>
     </div>
@@ -838,7 +835,7 @@ async function logout() {
 }
 
 function addKey() {
-    credentials.push({id: `new-${nextId++}`, provider: 'Anthropic', label: '', key: '', isNew: true});
+    credentials.push({id: `new-${nextId++}`, provider: 'Ace Data Cloud', label: 'Ace Data Cloud', key: '', isNew: true});
     renderKeys();
 }
 
@@ -904,13 +901,13 @@ function renderKeys() {
             const providerLabel = document.createElement('label');
             providerLabel.textContent = 'PROVIDER';
             const select = document.createElement('select');
-            ['Anthropic', 'OpenAI', 'Google Gemini', 'OpenRouter', 'Mistral', 'DeepSeek', 'Custom provider'].forEach(name => {
+            ['Ace Data Cloud', 'Anthropic', 'OpenAI', 'Google Gemini', 'OpenRouter', 'Mistral', 'DeepSeek', 'Custom provider'].forEach(name => {
                 const option = document.createElement('option');
                 option.value = name;
                 option.textContent = name;
                 select.appendChild(option);
             });
-            select.value = item.provider || 'Custom provider';
+            select.value = item.provider || 'Ace Data Cloud';
             select.addEventListener('change', e => updateKey(item.id, 'provider', e.target.value));
             provider.append(providerLabel, select);
 
