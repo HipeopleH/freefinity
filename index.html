@@ -602,7 +602,7 @@ footer button:hover{color:white}
                     API base URL: https://YOUR-FREEFINITY-DOMAIN/v1<br>
                     API format: OpenAI-compatible<br>
                     API key: YOUR_FREEFINITY_GATEWAY_KEY<br>
-                    Model IDs: Leave empty for discovery, or enter supported IDs manually
+                    Model IDs: Use the IDs returned by GET /v1/models
                 </div>
                 <p style="margin-top:10px">
                     Replace the example domain and gateway key with your actual
@@ -616,9 +616,10 @@ footer button:hover{color:white}
             <div>
                 <h3>Save your provider</h3>
                 <p>
-                    Save the custom provider configuration. FCC can discover models
-                    automatically if the gateway supports model discovery. Otherwise,
-                    enter the exact model IDs supported by Freefinity.
+                    Save the custom provider configuration. Freefinity exposes
+                    Ace Data Cloud's current chat model catalogue through GET /v1/models.
+                    Select the exact model ID returned by that endpoint; Claude models
+                    are sorted to the top of the Freefinity catalogue.
                 </p>
             </div>
         </div>
@@ -652,7 +653,8 @@ footer button:hover{color:white}
                     your configured coding agent.
                 </p>
                 <div class="codebox">
-                    fcc-claude
+                    fcc-claude<br>
+                    fcc-opencode
                 </div>
                 <p style="margin-top:10px">
                     If the connection fails, verify the gateway URL, authentication,
