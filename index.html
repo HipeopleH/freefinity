@@ -909,7 +909,7 @@ async function logout() {
 }
 
 function addKey() {
-    credentials.push({id: `new-${nextId++}`, provider: 'Ace Data Cloud', label: 'Ace Data Cloud', key: '', isNew: true});
+    credentials.push({id: `new-${nextId++}`, provider: 'Ace Data Cloud', label: '', key: '', isNew: true});
     renderKeys();
 }
 
@@ -988,12 +988,16 @@ function renderKeys() {
             const label = document.createElement('div');
             label.className = 'field';
             const labelTitle = document.createElement('label');
-            labelTitle.textContent = 'LABEL';
+            labelTitle.textContent = 'NOTE (OPTIONAL)';
             const labelInput = document.createElement('input');
-            labelInput.placeholder = 'My API key';
+            labelInput.placeholder = 'e.g. home, work, backup';
+            labelInput.title = 'Private note for your reference only. It does not restrict provider access, models, or routing.';
             labelInput.value = item.label || '';
             labelInput.addEventListener('input', e => updateKey(item.id, 'label', e.target.value));
-            label.append(labelTitle, labelInput);
+            const labelHint = document.createElement('small');
+            labelHint.textContent = 'For your reference only — does not affect routing.';
+            labelHint.style.cssText = 'font-size:9px;color:var(--muted);line-height:1.4';
+            label.append(labelTitle, labelInput, labelHint);
 
             const key = document.createElement('div');
             key.className = 'field';
