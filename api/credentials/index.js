@@ -8,7 +8,7 @@ module.exports = async function handler(req, res) {
 
     if (req.method === 'GET') {
       const result = await db.from('provider_credentials')
-        .select('id,provider,label,created_at')
+        .select('id,provider,label,created_at,health_status,health_checked_at,health_message')
         .eq('user_id', user.id).order('created_at', { ascending: true });
       if (result.error) return sendJson(res, 500, { error: result.error.message });
       return sendJson(res, 200, { credentials: result.data });
