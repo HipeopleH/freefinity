@@ -495,6 +495,13 @@ footer button:hover{color:white}
                 <div class="auth-message" id="signupMessage" role="status"></div>
                 <button class="primary" type="submit">Create account →</button>
             </form>
+            <form class="auth-form" id="verifyEmailForm" hidden>
+                <p style="font-size:12px;color:var(--muted);line-height:1.7;margin:0">We sent a 6-digit verification code to <strong id="verifyEmailAddress" style="color:white"></strong>. Enter it below to activate your account.</p>
+                <label>Verification code<input name="token" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required placeholder="000000"></label>
+                <div class="auth-message" id="verifyMessage" role="status"></div>
+                <button class="primary" type="submit">Verify email →</button>
+                <button class="secondary" type="button" id="backToSignup">Back</button>
+            </form>
             <div class="auth-switch">Already have an account? <button onclick="showPage('login')">Log in</button></div>
         </div>
     </div>
@@ -694,7 +701,8 @@ const API = {
         signup: '/api/auth/signup',
         login: '/api/auth/login',
         logout: '/api/auth/logout',
-        me: '/api/auth/me'
+        me: '/api/auth/me',
+        verify: '/api/auth/verify'
     },
     credentials: '/api/credentials',
     gatewayKeys: '/api/gateway-keys',
@@ -786,6 +794,15 @@ async function submitAuth(formId, endpoint, messageId, successText) {
                 method: 'POST',
                 body: JSON.stringify(values)
             });
+
+            if (formId === 'signupForm' && result.requiresEmailConfirmation) {
+                document.getElementById('verifyEmailAddress').textContent = values.email;
+                form.hidden = true;
+                document.getElementById('verifyEmailForm').hidden = false;
+                message.textContent = '';
+                showToast('Check your email for the 6-digit code.');
+                return;
+            }
 
             // The backend should set a Secure, HttpOnly, SameSite cookie.
             currentUser = result.user || {email: values.email};
@@ -997,6 +1014,47 @@ function showToast(message) {
 
 submitAuth('loginForm', API.auth.login, 'loginMessage', 'Logged in.');
 submitAuth('signupForm', API.auth.signup, 'signupMessage', 'Account created.');
+
+let pendingVerificationEmail = '';
+document.getElementById('signupForm').addEventListener('submit', () => {
+    const email = document.querySelector('#signupForm input[name="email"]').value.trim();
+    if (email) pendingVerificationEmail = email;
+});
+document.getElementById('verifyEmailForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const message = document.getElementById('verifyMessage');
+    const button = form.querySelector('button[type="submit"]');
+    message.textContent = '';
+    button.disabled = true;
+    button.textContent = 'Verifying...';
+    try {
+        const token = new FormData(form).get('token').toString().trim();
+        const result = await apiRequest(API.auth.verify, {
+            method: 'POST',
+            body: JSON.stringify({email: pendingVerificationEmail, token})
+        });
+        currentUser = result.user || {email: pendingVerificationEmail};
+        updateAccountUI();
+        form.reset();
+        document.getElementById('signupForm').reset();
+        document.getElementById('signupForm').hidden = false;
+        form.hidden = true;
+        pendingVerificationEmail = '';
+        showToast('Email verified. Account activated.');
+        await loadCredentials();
+        showPage('api');
+    } catch (error) {
+        message.textContent = error.message;
+    } finally {
+        button.disabled = false;
+        button.textContent = 'Verify email →';
+    }
+});
+document.getElementById('backToSignup').addEventListener('click', () => {
+    document.getElementById('verifyEmailForm').hidden = true;
+    document.getElementById('signupForm').hidden = false;
+});
 renderKeys();
 refreshSession();
 </script>
