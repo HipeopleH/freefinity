@@ -130,7 +130,7 @@ h1{font-size:clamp(46px,8vw,78px);letter-spacing:-4px;line-height:1.05;margin:25
 .panel-content{padding:19px}
 .key-list{display:flex;flex-direction:column;gap:10px}
 .key-row{
-    display:grid;grid-template-columns:1.1fr 1fr 1.5fr auto;
+    display:grid;grid-template-columns:1.1fr 1fr 1.5fr auto auto;
     gap:10px;align-items:center;background:#151a27;
     border:1px solid #2a3041;border-radius:8px;padding:12px;
 }
@@ -1012,6 +1012,35 @@ function renderKeys() {
             keyInput.addEventListener('input', e => updateKey(item.id, 'key', e.target.value));
             key.append(keyTitle, keyInput);
 
+            const health = document.createElement('div');
+            health.className = 'field';
+            const healthTitle = document.createElement('label');
+            healthTitle.textContent = 'KEY HEALTH';
+            const healthValue = document.createElement('strong');
+            const healthLabels = {
+                unchecked: 'Not checked yet',
+                active: 'Active',
+                invalid: 'Invalid',
+                expired: 'Expired',
+                insufficient_credits: 'Insufficient credits',
+                unknown: 'Unknown'
+            };
+            const healthColors = {
+                active: '#55d6a0',
+                invalid: '#ff7777',
+                expired: '#ff7777',
+                insufficient_credits: '#f0bd62',
+                unknown: '#aab0c2',
+                unchecked: '#aab0c2'
+            };
+            healthValue.textContent = item.isNew ? 'Not saved' : (healthLabels[item.health_status] || 'Not checked yet');
+            healthValue.title = item.health_message || 'Health is updated automatically when this credential is used.';
+            healthValue.style.cssText = 'font-size:11px;color:' + (item.isNew ? '#aab0c2' : (healthColors[item.health_status] || '#aab0c2'));
+            const checkedAt = document.createElement('small');
+            checkedAt.textContent = item.health_checked_at ? 'Checked ' + new Date(item.health_checked_at).toLocaleString() : 'Checked during API requests';
+            checkedAt.style.cssText = 'font-size:9px;color:var(--muted);line-height:1.4';
+            health.append(healthTitle, healthValue, checkedAt);
+
             const actions = document.createElement('div');
             actions.className = 'key-actions';
             if (item.isNew) {
@@ -1027,7 +1056,7 @@ function renderKeys() {
             remove.title = 'Remove credential';
             remove.addEventListener('click', () => removeKey(item.id));
             actions.append(remove);
-            row.append(provider, label, key, actions);
+            row.append(provider, label, key, health, actions);
             list.append(row);
         });
     }
