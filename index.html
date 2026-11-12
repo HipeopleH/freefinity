@@ -763,17 +763,17 @@ footer button:hover{color:white}
 // These routes are implemented by the Vercel functions in /api.
 const API = {
     auth: {
-        signup: '/api/auth/signup',
-        login: '/api/auth/login',
-        logout: '/api/auth/logout',
-        me: '/api/auth/me',
-        completeConfirmation: '/api/auth/complete-confirmation'
+        signup: '/api/auth?action=signup',
+        login: '/api/auth?action=login',
+        logout: '/api/auth?action=logout',
+        me: '/api/auth?action=me',
+        completeConfirmation: '/api/auth?action=complete-confirmation'
     },
     credentials: '/api/credentials',
     gatewayKeys: '/api/gateway-keys',
-    aceModels: '/api/ace/models',
-    aceManagementKey: '/api/ace/management-key',
-    aceBalance: '/api/ace/balance',
+    aceModels: '/api/ace?action=models',
+    aceManagementKey: '/api/ace?action=management-key',
+    aceBalance: '/api/ace?action=balance',
     usage: '/api/usage',
     models: '/v1/models',
     chatCompletions: '/v1/chat/completions'
@@ -943,7 +943,7 @@ async function removeKey(id) {
         return;
     }
     try {
-        await apiRequest(`${API.credentials}/${encodeURIComponent(id)}`, {method: 'DELETE'});
+        await apiRequest(`${API.credentials}?id=${encodeURIComponent(id)}`, {method: 'DELETE'});
         showToast('Provider connection removed.');
         await loadCredentials();
     } catch (error) {
