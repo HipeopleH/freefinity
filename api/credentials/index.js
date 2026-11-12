@@ -19,7 +19,7 @@ module.exports = async function handler(req, res) {
       const provider = String(body.provider || '').trim();
       const label = String(body.label || '').trim().slice(0, 80);
       const key = String(body.key || '').trim();
-      const allowed = ['OpenAI', 'Anthropic', 'Google Gemini', 'OpenRouter', 'Mistral', 'DeepSeek', 'Custom provider'];
+      const allowed = ['Ace Data Cloud', 'OpenAI', 'Anthropic', 'Google Gemini', 'OpenRouter', 'Mistral', 'DeepSeek', 'Custom provider'];
       if (!allowed.includes(provider)) return sendJson(res, 400, { error: 'Unsupported provider.' });
       if (!key || key.length > 4096) return sendJson(res, 400, { error: 'Enter a valid provider key.' });
       const encrypted = encryptSecret(key);
