@@ -35,7 +35,13 @@ module.exports = async function handler(req, res) {
       Number(/claude/i.test(b.id)) - Number(/claude/i.test(a.id)) ||
       a.id.localeCompare(b.id)
     );
-    return sendJson(res, 200, { object: 'list', data });
+    return sendJson(res, 200, {
+      object: 'list',
+      data,
+      has_more: false,
+      first_id: data.length ? data[0].id : null,
+      last_id: data.length ? data[data.length - 1].id : null
+    });
   } catch (error) {
     return sendJson(res, 502, { error: { message: error.message || 'Model listing failed.', type: 'upstream_error' } });
   }
