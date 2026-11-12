@@ -1,26 +1,16 @@
 {
   "version": 2,
   "functions": {
-    "api/**/*.js": {
-      "maxDuration": 30
-    }
+    "api/*.js": { "maxDuration": 30 },
+    "api/**/*.js": { "maxDuration": 30 }
   },
   "rewrites": [
-    {
-      "source": "/v1/messages/count_tokens",
-      "destination": "/api/v1/messages/count_tokens"
-    },
-    {
-      "source": "/v1/messages",
-      "destination": "/api/v1/messages"
-    },
-    {
-      "source": "/v1/models",
-      "destination": "/api/v1/models"
-    },
-    {
-      "source": "/v1/chat/completions",
-      "destination": "/api/v1/chat/completions"
-    }
+    { "source": "/api/auth/:action", "destination": "/api/auth?action=$1" },
+    { "source": "/api/ace/:action", "destination": "/api/ace?action=$1" },
+    { "source": "/api/credentials/:id", "destination": "/api/credentials?id=$1" },
+    { "source": "/v1/messages/count_tokens", "destination": "/api/v1/messages?endpoint=count_tokens" },
+    { "source": "/v1/messages", "destination": "/api/v1/messages" },
+    { "source": "/v1/models", "destination": "/api/v1/models" },
+    { "source": "/v1/chat/completions", "destination": "/api/v1/chat/completions" }
   ]
 }
