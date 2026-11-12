@@ -257,7 +257,21 @@ footer button:hover{color:white}
 .auth-gate p{font-size:12px;line-height:1.7;color:var(--muted)}
 .account-status{font-size:10px;color:var(--green);margin-left:8px}
 .key-actions .save-btn{padding:7px 9px;font-size:10px;border-radius:6px;background:#29213f;color:#c9baff;border:1px solid #403663}
-@media(max-width:700px){.auth-card{padding:19px}}
+.model-list{display:flex;flex-direction:column;gap:7px}
+.model-row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#151a27;border:1px solid #2a3041;border-radius:7px;padding:10px 12px}
+.model-row code{font-size:11px;color:#d8d0ff;overflow-wrap:anywhere}
+.model-meta{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.model-tag{font-size:9px;color:#c8b8ff;background:#29213f;border:1px solid #403663;border-radius:20px;padding:4px 7px}
+.usage-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.usage-stat{background:#151a27;border:1px solid #2a3041;border-radius:8px;padding:13px}
+.usage-stat small{font-size:9px;color:var(--muted)}
+.usage-stat strong{display:block;font-size:21px;margin-top:7px;letter-spacing:-.5px}
+.usage-models{display:flex;flex-direction:column;gap:7px;margin-top:16px}
+.usage-model-row{display:grid;grid-template-columns:minmax(0,1fr) repeat(3,minmax(65px,auto));gap:12px;align-items:center;padding:10px 12px;background:#151a27;border:1px solid #2a3041;border-radius:7px;font-size:10px}
+.usage-model-row strong{font-size:10px;overflow-wrap:anywhere}
+.usage-model-row span{color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.usage-note{font-size:10px;color:var(--muted);line-height:1.7;margin-top:12px}
+@media(max-width:700px){.auth-card{padding:19px}.usage-stats{grid-template-columns:1fr 1fr}.usage-model-row{grid-template-columns:1fr 1fr}.usage-model-row strong{grid-column:1/-1}.usage-model-row span{text-align:left}}
 
 </style>
 </head>
@@ -394,6 +408,28 @@ footer button:hover{color:white}
         </div>
     </div>
 
+    <div class="panel">
+        <div class="panel-heading">
+            <div><h2>Ace Data Cloud models</h2><p id="aceModelsStatus">Live model catalogue from your saved Ace connection.</p></div>
+            <button class="secondary" id="refreshAceModels" onclick="loadAceModels(true)">Refresh models</button>
+        </div>
+        <div class="panel-content"><div class="model-list" id="aceModelList"><div class="empty">Save an Ace Data Cloud connection to discover its available models.</div></div></div>
+    </div>
+    <div class="panel">
+        <div class="panel-heading">
+            <div><h2>Freefinity API usage</h2><p>Aggregate usage across your Freefinity gateway API keys.</p></div>
+            <button class="secondary" onclick="loadUsage()">Refresh usage</button>
+        </div>
+        <div class="panel-content">
+            <div class="usage-stats">
+                <div class="usage-stat"><small>TOTAL REQUESTS</small><strong id="usageRequests">0</strong></div>
+                <div class="usage-stat"><small>INPUT TOKENS</small><strong id="usagePromptTokens">0</strong></div>
+                <div class="usage-stat"><small>OUTPUT TOKENS</small><strong id="usageCompletionTokens">0</strong></div>
+            </div>
+            <div class="usage-models" id="usageModelList"><div class="empty">No Freefinity API usage recorded yet.</div></div>
+            <p class="usage-note">Usage is recorded by Freefinity gateway key and model, then combined for this account. It is not split by saved Ace credentials. Token totals use usage data returned by the upstream API; requests are counted even when token details are unavailable. Prompts and provider secrets are not stored in usage records.</p>
+        </div>
+    </div>
     <div class="panel">
         <div class="panel-heading">
             <div>
@@ -702,6 +738,8 @@ const API = {
     },
     credentials: '/api/credentials',
     gatewayKeys: '/api/gateway-keys',
+    aceModels: '/api/ace/models',
+    usage: '/api/usage',
     models: '/v1/models',
     chatCompletions: '/v1/chat/completions'
 };
@@ -726,9 +764,10 @@ async function apiRequest(path, options = {}) {
         : await response.text();
 
     if (!response.ok) {
-        const message = data && typeof data === 'object'
-            ? (data.error || data.message || `Request failed (${response.status})`)
-            : (data || `Request failed (${response.status})`);
+        const errorValue = data && typeof data === 'object' ? data.error : null;
+        const message = errorValue && typeof errorValue === 'object'
+            ? (errorValue.message || `Request failed (${response.status})`)
+            : (errorValue || (data && data.message) || data || `Request failed (${response.status})`);
         throw new Error(message);
     }
     return data;
@@ -963,12 +1002,104 @@ async function loadCredentials() {
         credentials = Array.isArray(result) ? result : (result.credentials || []);
         credentials = credentials.map(item => ({...item, key: '', isNew: false}));
         renderKeys();
+        await Promise.all([loadAceModels(), loadUsage()]);
     } catch (error) {
-        if (error.message.includes('Failed to fetch')) {
-            showToast('Credentials endpoint is planned but not deployed yet.');
+        showToast(error.message);
+    }
+}
+
+function formatCount(value) {
+    return new Intl.NumberFormat().format(Number(value || 0));
+}
+
+async function loadAceModels(showFeedback = false) {
+    const list = document.getElementById('aceModelList');
+    const status = document.getElementById('aceModelsStatus');
+    const button = document.getElementById('refreshAceModels');
+    if (!currentUser || !list || !status) return;
+    if (!credentials.some(item => item.provider === 'Ace Data Cloud')) {
+        status.textContent = 'Connect Ace Data Cloud to load its current model catalogue.';
+        list.innerHTML = '<div class="empty">Save an Ace Data Cloud API key to discover available models.</div>';
+        return;
+    }
+    if (button) button.disabled = true;
+    status.textContent = 'Fetching the current Ace Data Cloud model list...';
+    try {
+        const result = await apiRequest(API.aceModels);
+        const models = Array.isArray(result.data) ? result.data : [];
+        list.replaceChildren();
+        if (!models.length) {
+            list.innerHTML = '<div class="empty">Ace Data Cloud returned no chat models for this connection.</div>';
         } else {
-            showToast(error.message);
+            models.forEach(model => {
+                const row = document.createElement('div');
+                row.className = 'model-row';
+                const name = document.createElement('code');
+                name.textContent = model.id;
+                const meta = document.createElement('div');
+                meta.className = 'model-meta';
+                if (/claude/i.test(model.id)) {
+                    const tag = document.createElement('span');
+                    tag.className = 'model-tag';
+                    tag.textContent = 'CLAUDE';
+                    meta.append(tag);
+                }
+                row.append(name, meta);
+                list.append(row);
+            });
         }
+        const updated = result.fetched_at ? new Date(result.fetched_at).toLocaleString() : 'just now';
+        status.textContent = models.length + ' models found · Last refreshed ' + updated;
+        if (showFeedback) showToast('Ace Data Cloud model list refreshed.');
+    } catch (error) {
+        status.textContent = 'Could not refresh the Ace Data Cloud catalogue.';
+        list.replaceChildren();
+        const message = document.createElement('div');
+        message.className = 'empty';
+        message.textContent = error.message;
+        list.append(message);
+        if (showFeedback) showToast(error.message);
+    } finally {
+        if (button) button.disabled = false;
+    }
+}
+
+async function loadUsage() {
+    if (!currentUser) return;
+    try {
+        const result = await apiRequest(API.usage);
+        const totals = result.totals || {};
+        document.getElementById('usageRequests').textContent = formatCount(totals.requests);
+        document.getElementById('usagePromptTokens').textContent = formatCount(totals.prompt_tokens);
+        document.getElementById('usageCompletionTokens').textContent = formatCount(totals.completion_tokens);
+        const list = document.getElementById('usageModelList');
+        list.replaceChildren();
+        const models = Array.isArray(result.models) ? result.models : [];
+        if (!models.length) {
+            list.innerHTML = '<div class="empty">No Freefinity API usage recorded yet.</div>';
+            return;
+        }
+        models.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'usage-model-row';
+            const name = document.createElement('strong');
+            name.textContent = item.model;
+            const requests = document.createElement('span');
+            requests.textContent = formatCount(item.requests) + ' requests';
+            const input = document.createElement('span');
+            input.textContent = formatCount(item.prompt_tokens) + ' input';
+            const output = document.createElement('span');
+            output.textContent = formatCount(item.completion_tokens) + ' output';
+            row.append(name, requests, input, output);
+            list.append(row);
+        });
+    } catch (error) {
+        const list = document.getElementById('usageModelList');
+        list.replaceChildren();
+        const message = document.createElement('div');
+        message.className = 'empty';
+        message.textContent = error.message;
+        list.append(message);
     }
 }
 
